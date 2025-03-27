@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Trainee.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace Trainee.Controllers
 {
@@ -8,7 +8,7 @@ namespace Trainee.Controllers
     [ApiController]
     public class VehiclesController : ControllerBase
     {
-        private static List<Vehicle> _vehicles = new List<Vehicle>
+        private static List<Vehicle> _vehicles = new()
         {
             new Vehicle
             {
@@ -32,37 +32,40 @@ namespace Trainee.Controllers
             }
         };
 
-        // GET: api/vehicles
+        /// Gets all vehicles
         [HttpGet]
-        public ActionResult<IEnumerable<Vehicle>> Get()
+        public ActionResult<IEnumerable<Vehicle>> GetAll()
         {
-            return _vehicles;
+            return Ok(_vehicles);
         }
 
-        // GET api/vehicles/5
+        /// Gets a specific vehicle by id
         [HttpGet("{id}")]
-        public ActionResult<Vehicle> Get(int id)
+        public ActionResult<Vehicle> GetById(int id)
         {
             var vehicle = _vehicles.FirstOrDefault(v => v.Id == id);
-            if (vehicle == null)
-            {
-                return NotFound();
-            }
-            return vehicle;
+            return vehicle == null ? NotFound() : Ok(vehicle);
         }
 
-        // POST api/vehicles
+        /// Creates a new vehicle
         [HttpPost]
-        public ActionResult<Vehicle> Post([FromBody] Vehicle vehicle)
+        public ActionResult<Vehicle> Create([FromBody] Vehicle vehicle)
         {
-            vehicle.Id = _vehicles.Max(v => v.Id) + 1;
-            _vehicles.Add(vehicle);
-            return CreatedAtAction(nameof(Get), new { id = vehicle.Id }, vehicle);
+            try
+            {
+                vehicle.Id = _vehicles.Max(v => v.Id) + 1;
+                _vehicles.Add(vehicle);
+                return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, vehicle);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
-        // PUT api/vehicles/5
+        /// Updates an existing vehicle
         [HttpPut("{id}")]
-        public ActionResult<Vehicle> Put(int id, [FromBody] Vehicle vehicle)
+        public IActionResult Update(int id, [FromBody] Vehicle vehicle)
         {
             var existingVehicle = _vehicles.FirstOrDefault(v => v.Id == id);
             if (existingVehicle == null)
@@ -70,26 +73,35 @@ namespace Trainee.Controllers
                 return NotFound();
             }
 
-            existingVehicle.Make = vehicle.Make;
-            existingVehicle.Model = vehicle.Model;
-            existingVehicle.Year = vehicle.Year;
-            existingVehicle.Color = vehicle.Color;
-            existingVehicle.Price = vehicle.Price;
-            existingVehicle.Type = vehicle.Type;
+            try
+            {
+                existingVehicle.Make = vehicle.Make;
+                existingVehicle.Model = vehicle.Model;
+                existingVehicle.Year = vehicle.Year;
+                existingVehicle.Color = vehicle.Color;
+                existingVehicle.Price = vehicle.Price;
+                existingVehicle.Type = vehicle.Type;
 
-            return existingVehicle;
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
-        // DELETE api/vehicles/5
+        /// Deletes a specific vehicle
         [HttpDelete("{id}")]
-        public ActionResult<bool> Delete(int id)
+        public IActionResult Delete(int id)
         {
             var vehicle = _vehicles.FirstOrDefault(v => v.Id == id);
             if (vehicle == null)
             {
-                return false;
+                return NotFound();
             }
-            return _vehicles.Remove(vehicle);
+
+            _vehicles.Remove(vehicle);
+            return NoContent();
         }
     }
 }
