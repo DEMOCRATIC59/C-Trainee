@@ -1,40 +1,33 @@
 ﻿using Trainee.Application.Services;
 using Trainee.Contracts.Requests;
-using Trainee.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 using Trainee.Contracts.Responses;
 
 namespace Trainee.Presentation.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/vehicles")]
     public class VehiclesController : ControllerBase
     {
-        private readonly IVehicleService _vehicleService;
+        private readonly VehicleService _service;
 
-        public VehiclesController(IVehicleService vehicleService)
+        public VehiclesController(VehicleService service)
         {
-            _vehicleService = vehicleService;
+            _service = service;
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<VehicleResponse>> GetAll()
-        {
-            return Ok(_vehicleService.GetAll());
-        }
+        public ActionResult<IEnumerable<VehicleResponse>> GetAll() =>
+            Ok(_service.GetAll());
 
         [HttpGet("{id}")]
-        public ActionResult<VehicleResponse> GetById(int id)
-        {
-            var vehicle = _vehicleService.GetById(id);
-            return vehicle == null ? NotFound() : Ok(vehicle);
-        }
+        public ActionResult<VehicleResponse> GetById(int id) =>
+            _service.GetById(id) is { } vehicle ? Ok(vehicle) : NotFound();
 
         [HttpPost]
-        public ActionResult<VehicleResponse> Create([FromBody] CreateVehicleRequest request)
+        public ActionResult<VehicleResponse> Create(CreateVehicleRequest request)
         {
-            var vehicle = _vehicleService.Create(request);
+            var vehicle = _service.Create(request);
             return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, vehicle);
         }
 
@@ -44,14 +37,13 @@ namespace Trainee.Presentation.Controllers
             [FromBody] UpdateVehicleRequest request)
         {
             request.Id = id;
-            var vehicle = _vehicleService.Update(request);
-            return vehicle == null ? NotFound() : Ok(vehicle);
+            return _service.Update(request) is { } vehicle
+                ? Ok(vehicle)
+                : NotFound();
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
-        {
-            return _vehicleService.Delete(id) ? NoContent() : NotFound();
-        }
+        public IActionResult Delete(int id) =>
+            _service.Delete(id) ? NoContent() : NotFound();
     }
 }

@@ -1,12 +1,16 @@
 using Trainee.Application.Services;
+using Trainee.Infrastructure.Repositories;
+using Trainee.Application.Repositories;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
+builder.Services.AddScoped<VehicleService>();
+
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<IVehicleService, VehicleService>();
-builder.Services.AddControllers();
 
 var app = builder.Build();
 
