@@ -1,17 +1,21 @@
-# Этап сборки
-FROM mcr.microsoft.com/dotnet/sdk:8.0-nanoserver-ltsc2022 AS build
+# Используем официальный образ для .NET 8
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 80
+
+# Используем образ для SDK, чтобы собирать проект
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["Presentation/Presentation.csproj", "Presentation/"]
-COPY ["Application/Application.csproj", "Application/"]
-COPY ["Domain/Domain.csproj", "Domain/"]
-COPY ["Infrastructure/Infrastructure.csproj", "Infrastructure/"]
-COPY ["Contracts/Contracts.csproj", "Contracts/"]
-RUN dotnet restore "Presentation/Presentation.csproj" -r win-x64
+RUN dotnet restore "Presentation/Presentation.csproj"
 COPY . .
-RUN dotnet publish "Presentation/Presentation.csproj" -c Release -o /app/publish /p:UseAppHost=false
+WORKDIR "/src/Presentation"
+RUN dotnet build "Presentation.csproj" -c Release -o /app/build
 
-# Финальный образ
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-nanoserver-ltsc2022
+FROM build AS publish
+RUN dotnet publish "Presentation.csproj" -c Release -o /app/publish
+
+FROM base AS final
 WORKDIR /app
-COPY --from=build /app/publish .
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Presentation.dll"]

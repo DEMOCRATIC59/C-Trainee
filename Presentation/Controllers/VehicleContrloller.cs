@@ -2,6 +2,9 @@
 using Trainee.Contracts.Requests;
 using Microsoft.AspNetCore.Mvc;
 using Trainee.Contracts.Responses;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+
 
 namespace Trainee.Presentation.Controllers
 {

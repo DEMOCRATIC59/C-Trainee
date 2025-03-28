@@ -3,6 +3,7 @@ using Trainee.Infrastructure.Repositories;
 using Trainee.Application.Repositories;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
